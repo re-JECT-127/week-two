@@ -1,49 +1,66 @@
 'use strict';
-const users = [
-  {
-    id: '1',
-    name: 'John Doe',
-    email: 'john@metropolia.fi',
-    password: '1234',
-  },
-  {
-    id: '2',
-    name: 'Jane Doez',
-    email: 'jane@metropolia.fi',
-    password: 'qwer',
-  },
-];
+const pool = require('../database/db');
+const userRoute = require('../routes/userRoute');
+const promisePool = pool.promise();
 
-const getUsersList = () => {
-  // remember export
-  // SELECT user_id, name, email FROM wop_user
+const getAllUsers = async () => {
+  try {
+    const [rows] = await promisePool.query(
+        'SELECT user_id, name, email, password FROM wop_user');
+    return rows;
+  } catch (e) {
+    console.error('error', e.message);
+  }
 };
 
-const getUser = (id) => {
-  // SELECT * FROM wop_user WHERE user_id = ? 
-  // remember in controller do :   
-  // delete user.password;
-  // before sending the user back
-  const user = users.filter((usr) => {
-    if (usr.id === id) {
-      return usr;
-    }
-  });
-  return user[0];
+const getUser = async (id) => {
+  try {
+    const [rows] = await promisePool.query(
+        'SELECT * FROM wop_user WHERE user_id = ?', [ id ]);
+    return rows[0];
+  } catch (e) {
+    console.error('error', e.message);
+  }
 };
 
-const getUserLogin = (email) => {
-  const user = users.filter((usr) => {
-    if (usr.email === email) {
-      return usr;
-    }
-  });
-  return user[0];
+const insertUser = async (user) => {
+  try {
+    console.log('insert user?', user);
+    const [rows] = await promisePool.query(
+        'INSERT INTO wop_user (name, email, password) VALUES (?, ?, ?)', [ user.name, user.email, user.password ]);
+    return rows;
+  } catch (e) {
+    console.error('error', e.message);
+  }
+};
+
+const updateUser = async (user) => {
+  try {
+    console.log('insert user?', user);
+    const [rows] = await promisePool.query(
+        'UPDATE wop_user SET name = ?, email = ?, password = ?', [ user.name, user.email, user.password ]);
+    return rows;
+  } catch (e) {
+    console.error('updateUser model crash', e.message);
+  }
+};
+
+const deleteUser = async (id) => {
+  try {
+    console.log('delete user', id);
+    const [rows] = await promisePool.query(
+        'DELETE FROM wop_user WHERE wop_user.user_id = ?', [ id ]);
+    console.log('deleted?', rows);
+    return rows;
+  } catch (e) {
+    console.error('deleteUser model', e.message);
+  }
 };
 
 module.exports = {
-  users,
+  getAllUsers,
   getUser,
-  getUserLogin,
+  insertUser,
+  updateUser,
+  deleteUser,
 };
-
